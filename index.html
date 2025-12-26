@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gra Impostor - 5 graczy</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #121212;
+            color: #f0f0f0;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 2px solid #4cc9f0;
+        }
+        
+        h1 {
+            color: #4cc9f0;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(76, 201, 240, 0.5);
+        }
+        
+        .subtitle {
+            color: #a9a9a9;
+            font-size: 1.2rem;
+        }
+        
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .game-info {
+            background-color: rgba(30, 30, 46, 0.8);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid #2d2d4d;
+        }
+        
+        .info-title {
+            color: #72efdd;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .info-title i {
+            font-size: 1.5rem;
+        }
+        
+        .players-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .player-card {
+            background-color: rgba(40, 40, 60, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .player-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .player-card.connected {
+            border-color: #4ade80;
+        }
+        
+        .player-card.disconnected {
+            border-color: #f87171;
+        }
+        
+        .player-card.impostor {
+            border-color: #f87171;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(248, 113, 113, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(248, 113, 113, 0); }
+        }
+        
+        .player-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #72efdd;
+        }
+        
+        .player-name {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+        
+        .player-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        
+        .status-connected {
+            background-color: rgba(74, 222, 128, 0.2);
+            color: #4ade80;
+        }
+        
+        .status-disconnected {
+            background-color: rgba(248, 113, 113, 0.2);
+            color: #f87171;
+        }
+        
+        .player-password {
+            font-family: 'Courier New', monospace;
+            font-size: 1.3rem;
+            letter-spacing: 2px;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            word-break: break-all;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-primary {
+            background-color: #4cc9f0;
+            color: #121212;
+        }
+        
+        .btn-primary:hover {
+            background-color: #3aa8d8;
+            transform: scale(1.05);
+        }
+        
+        .btn-danger {
+            background-color: #f87171;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #e65c5c;
+            transform: scale(1.05);
+        }
+        
+        .btn-success {
+            background-color: #4ade80;
+            color: #121212;
+        }
+        
+        .btn-success:hover {
+            background-color: #3bc973;
+            transform: scale(1.05);
+        }
+        
+        .instructions {
+            margin-top: 30px;
+            background-color: rgba(30, 30, 46, 0.8);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid #2d2d4d;
+        }
+        
+        .instructions ol {
+            padding-left: 20px;
+            margin-top: 10px;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+        }
+        
+        .connection-status {
+            text-align: center;
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        
+        .connected-status {
+            background-color: rgba(74, 222, 128, 0.2);
+            color: #4ade80;
+            border: 1px solid #4ade80;
+        }
+        
+        .disconnected-status {
+            background-color: rgba(248, 113, 113, 0.2);
+            color: #f87171;
+            border: 1px solid #f87171;
+        }
+        
+        .game-code {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .code {
+            font-family: 'Courier New', monospace;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 10px 20px;
+            border-radius: 8px;
+            letter-spacing: 3px;
+            color: #72efdd;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .players-container {
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .btn {
+                padding: 12px 20px;
+                font-size: 1rem;
+            }
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #a9a9a9;
+            font-size: 0.9rem;
+            padding-top: 20px;
+            border-top: 1px solid #2d2d4d;
+        }
+        
+        .player-number {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 30px;
+            height: 30px;
+            background-color: #4cc9f0;
+            color: #121212;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-user-secret"></i> Gra Impostor</h1>
+            <p class="subtitle">4 graczy otrzymuje to samo hasło, a jeden jest oszustem z innym hasłem</p>
+        </header>
+        
+        <div class="game-area">
+            <div class="game-info">
+                <h2 class="info-title"><i class="fas fa-gamepad"></i> Panel Gry</h2>
+                <p>W tej grze 5 graczy łączy się do wspólnej sesji. Po połączeniu, system losowo wybierze 4 graczy, którzy otrzymają to samo hasło, oraz jednego gracza (impostora), który otrzyma inne hasło.</p>
+                
+                <div class="game-code">
+                    <div>Kod gry:</div>
+                    <div class="code" id="gameCode">IMPO-5</div>
+                </div>
+                
+                <div class="connection-status disconnected-status" id="connectionStatus">
+                    Nie połączono z serwerem gry
+                </div>
+            </div>
+            
+            <div class="game-info">
+                <h2 class="info-title"><i class="fas fa-users"></i> Gracze</h2>
+                <div class="players-container" id="playersContainer">
+                    <!-- Gracze będą dodawani dynamicznie przez JavaScript -->
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button class="btn btn-primary" id="joinGameBtn">
+                    <i class="fas fa-user-plus"></i> Dołącz do gry
+                </button>
+                <button class="btn btn-success" id="startGameBtn">
+                    <i class="fas fa-play"></i> Rozpocznij grę
+                </button>
+                <button class="btn btn-danger" id="resetGameBtn">
+                    <i class="fas fa-redo"></i> Resetuj grę
+                </button>
+            </div>
+            
+            <div class="instructions">
+                <h2 class="info-title"><i class="fas fa-info-circle"></i> Instrukcje gry</h2>
+                <ol>
+                    <li>Każdy gracz na swoim urządzeniu wchodzi na tę stronę i klika "Dołącz do gry"</li>
+                    <li>Gdy wszyscy gracze są połączeni, lider gry klika "Rozpocznij grę"</li>
+                    <li>System losowo przydzieli 4 graczom to samo hasło, a jednemu graczowi (impostorowi) inne hasło</li>
+                    <li>Gracze widzą tylko swoje własne hasło, nie widzą haseł innych graczy</li>
+                    <li>Celem gry jest odgadnięcie, kto jest impostorem poprzez zadawanie pytań i obserwację zachowań</li>
+                    <li>Po zakończeniu rundy można zresetować grę, aby zagrać ponownie z nowymi rolami</li>
+                </ol>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Gra Impostor Online &copy; 2023 | Każdy gracz musi mieć otwartą tę stronę na swoim osobnym urządzeniu</p>
+        </footer>
+    </div>
+
+    <script>
+        // Symulacja serwera gry - w rzeczywistości potrzebowałbyś backendu
+        // W tej wersji używamy localStorage do symulacji wspólnej sesji
+        const GAME_CODE = "IMPO-5";
+        const PLAYER_COUNT = 5;
+        
+        // Hasła do gry
+        const PASSWORDS = {
+            normal: ["KOTELET", "KOMÓRKA", "WIATRAK", "ŚWIECZKA", "PARASOL", "KAPUSTA", "TELEWIZOR", "ROWER"],
+            impostor: ["KOTLET", "KOMURKA", "WIATRAK", "ŚWIECKA", "PARASOL", "KAPUSTA", "TELEWIZOR", "ROWER"]
+        };
+        
+        // Klasy dla graczy
+        class Player {
+            constructor(id, name, isConnected = false) {
+                this.id = id;
+                this.name = name;
+                this.isConnected = isConnected;
+                this.password = "";
+                this.isImpostor = false;
+                this.number = id + 1;
+            }
+        }
+        
+        // Stan gry
+        let gameState = {
+            players: [],
+            gameStarted: false,
+            impostorIndex: -1,
+            sessionId: GAME_CODE,
+            lastReset: Date.now()
+        };
+        
+        // Inicjalizacja gry
+        function initializeGame() {
+            // Inicjalizacja graczy
+            gameState.players = [];
+            for (let i = 0; i < PLAYER_COUNT; i++) {
+                gameState.players.push(new Player(i, `Gracz ${i + 1}`));
+            }
+            
+            // Ładowanie stanu z localStorage (symulacja serwera)
+            const savedState = localStorage.getItem(`impostorGame_${GAME_CODE}`);
+            if (savedState) {
+                const parsedState = JSON.parse(savedState);
+                // Aktualizujemy tylko połączenia, aby zachować spójność
+                if (parsedState.players && parsedState.players.length === PLAYER_COUNT) {
+                    for (let i = 0; i < PLAYER_COUNT; i++) {
+                        if (parsedState.players[i]) {
+                            gameState.players[i].isConnected = parsedState.players[i].isConnected || false;
+                            gameState.players[i].password = parsedState.players[i].password || "";
+                            gameState.players[i].isImpostor = parsedState.players[i].isImpostor || false;
+                        }
+                    }
+                    gameState.gameStarted = parsedState.gameStarted || false;
+                    gameState.impostorIndex = parsedState.impostorIndex || -1;
+                }
+            }
+            
+            updateGameDisplay();
+            updateConnectionStatus();
+        }
+        
+        // Aktualizacja wyświetlania gry
+        function updateGameDisplay() {
+            const playersContainer = document.getElementById('playersContainer');
+            playersContainer.innerHTML = '';
+            
+            gameState.players.forEach(player => {
+                const playerCard = document.createElement('div');
+                playerCard.className = `player-card ${player.isConnected ? 'connected' : 'disconnected'} ${player.isImpostor ? 'impostor' : ''}`;
+                
+                // Ikona gracza
+                const icon = player.isImpostor ? 'fa-user-secret' : 'fa-user';
+                
+                // Status połączenia
+                const statusText = player.isConnected ? 'Połączony' : 'Oczekuje...';
+                const statusClass = player.isConnected ? 'status-connected' : 'status-disconnected';
+                
+                // Hasło (pokazujemy tylko jeśli gra się rozpoczęła i gracz jest połączony)
+                let passwordDisplay = "Hasło: ???";
+                if (gameState.gameStarted && player.isConnected && player.password) {
+                    passwordDisplay = `Hasło: <strong>${player.password}</strong>`;
+                }
+                
+                playerCard.innerHTML = `
+                    <div class="player-number">${player.number}</div>
+                    <div class="player-icon">
+                        <i class="fas ${icon}"></i>
+                    </div>
+                    <div class="player-name">${player.name}</div>
+                    <div class="player-status ${statusClass}">${statusText}</div>
+                    <div class="player-password">${passwordDisplay}</div>
+                `;
+                
+                playersContainer.appendChild(playerCard);
+            });
+            
+            // Zapisanie stanu do localStorage (symulacja serwera)
+            localStorage.setItem(`impostorGame_${GAME_CODE}`, JSON.stringify(gameState));
+        }
+        
+        // Aktualizacja statusu połączenia
+        function updateConnectionStatus() {
+            const connectionStatus = document.getElementById('connectionStatus');
+            const connectedPlayers = gameState.players.filter(p => p.isConnected).length;
+            
+            if (connectedPlayers === PLAYER_COUNT) {
+                connectionStatus.textContent = `Wszyscy gracze połączeni (${connectedPlayers}/${PLAYER_COUNT})`;
+                connectionStatus.className = 'connection-status connected-status';
+            } else if (connectedPlayers > 0) {
+                connectionStatus.textContent = `Część graczy połączona (${connectedPlayers}/${PLAYER_COUNT})`;
+                connectionStatus.className = 'connection-status connected-status';
+            } else {
+                connectionStatus.textContent = 'Nie połączono z serwerem gry';
+                connectionStatus.className = 'connection-status disconnected-status';
+            }
+        }
+        
+        // Dołączanie do gry
+        function joinGame() {
+            // Szukamy wolnego miejsca dla gracza
+            let freeSlotIndex = -1;
+            for (let i = 0; i < gameState.players.length; i++) {
+                if (!gameState.players[i].isConnected) {
+                    freeSlotIndex = i;
+                    break;
+                }
+            }
+            
+            // Jeśli nie ma wolnych miejsc
+            if (freeSlotIndex === -1) {
+                alert('Gra jest już pełna! Poczekaj na reset lub załóż nową grę.');
+                return;
+            }
+            
+            // Połączenie gracza
+            gameState.players[freeSlotIndex].isConnected = true;
+            
+            // Jeśli gra już się rozpoczęła, przypisz hasło temu graczowi
+            if (gameState.gameStarted) {
+                assignPasswordToPlayer(freeSlotIndex);
+            }
+            
+            updateGameDisplay();
+            updateConnectionStatus();
+            
+            alert(`Dołączyłeś jako ${gameState.players[freeSlotIndex].name}!`);
+        }
+        
+        // Rozpoczęcie gry
+        function startGame() {
+            // Sprawdzenie czy wszyscy gracze są połączeni
+            const connectedPlayers = gameState.players.filter(p => p.isConnected).length;
+            
+            if (connectedPlayers < 2) {
+                alert('Potrzeba co najmniej 2 graczy, aby rozpocząć grę!');
+                return;
+            }
+            
+            // Resetujemy poprzednią grę jeśli była
+            resetGame(false);
+            
+            // Losowanie impostora spośród połączonych graczy
+            const connectedIndexes = [];
+            gameState.players.forEach((player, index) => {
+                if (player.isConnected) {
+                    connectedIndexes.push(index);
+                }
+            });
+            
+            // Losowy wybór impostora
+            const randomIndex = Math.floor(Math.random() * connectedIndexes.length);
+            gameState.impostorIndex = connectedIndexes[randomIndex];
+            
+            // Losowe wybranie haseł
+            const passwordIndex = Math.floor(Math.random() * PASSWORDS.normal.length);
+            const normalPassword = PASSWORDS.normal[passwordIndex];
+            const impostorPassword = PASSWORDS.impostor[passwordIndex];
+            
+            // Przydzielanie haseł graczom
+            gameState.players.forEach((player, index) => {
+                if (player.isConnected) {
+                    player.isImpostor = (index === gameState.impostorIndex);
+                    player.password = player.isImpostor ? impostorPassword : normalPassword;
+                }
+            });
+            
+            gameState.gameStarted = true;
+            updateGameDisplay();
+            
+            alert(`Gra rozpoczęta! Sprawdź swoje hasło. Jeden z graczy jest impostorem!`);
+        }
+        
+        // Przypisywanie hasła graczowi (gdy dołącza po rozpoczęciu gry)
+        function assignPasswordToPlayer(playerIndex) {
+            if (!gameState.gameStarted) return;
+            
+            // Sprawdzamy czy impostor już został wybrany
+            if (gameState.impostorIndex === -1) {
+                // Jeśli nie, ten gracz zostaje impostorem
+                gameState.impostorIndex = playerIndex;
+                gameState.players[playerIndex].isImpostor = true;
+                
+                // Losowe wybranie haseł
+                const passwordIndex = Math.floor(Math.random() * PASSWORDS.normal.length);
+                const normalPassword = PASSWORDS.normal[passwordIndex];
+                const impostorPassword = PASSWORDS.impostor[passwordIndex];
+                
+                // Ustawienie hasła dla impostora
+                gameState.players[playerIndex].password = impostorPassword;
+                
+                // Ustawienie haseł dla pozostałych połączonych graczy
+                gameState.players.forEach((player, index) => {
+                    if (player.isConnected && index !== playerIndex) {
+                        player.isImpostor = false;
+                        player.password = normalPassword;
+                    }
+                });
+            } else {
+                // Jeśli impostor już został wybrany, ten gracz dostaje normalne hasło
+                const normalPassword = gameState.players.find(p => p.isConnected && !p.isImpostor)?.password || PASSWORDS.normal[0];
+                gameState.players[playerIndex].isImpostor = false;
+                gameState.players[playerIndex].password = normalPassword;
+            }
+        }
+        
+        // Resetowanie gry
+        function resetGame(showAlert = true) {
+            // Resetujemy tylko stan gry, ale zachowujemy połączenia graczy
+            gameState.gameStarted = false;
+            gameState.impostorIndex = -1;
+            gameState.lastReset = Date.now();
+            
+            gameState.players.forEach(player => {
+                player.password = "";
+                player.isImpostor = false;
+            });
+            
+            updateGameDisplay();
+            
+            if (showAlert) {
+                alert('Gra została zresetowana. Kliknij "Rozpocznij grę", aby zagrać ponownie.');
+            }
+        }
+        
+        // Event listeners
+        document.getElementById('joinGameBtn').addEventListener('click', joinGame);
+        document.getElementById('startGameBtn').addEventListener('click', startGame);
+        document.getElementById('resetGameBtn').addEventListener('click', () => resetGame(true));
+        
+        // Symulacja aktualizacji z innych urządzeń (co 3 sekundy sprawdzamy localStorage)
+        setInterval(() => {
+            const savedState = localStorage.getItem(`impostorGame_${GAME_CODE}`);
+            if (savedState) {
+                const parsedState = JSON.parse(savedState);
+                
+                // Sprawdzamy czy inny gracz zaktualizował stan
+                if (parsedState.lastReset > gameState.lastReset) {
+                    gameState = parsedState;
+                    updateGameDisplay();
+                    updateConnectionStatus();
+                }
+            }
+        }, 3000);
+        
+        // Inicjalizacja gry przy ładowaniu strony
+        document.addEventListener('DOMContentLoaded', initializeGame);
+    </script>
+</body>
+</html>
