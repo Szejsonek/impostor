@@ -1,0 +1,13 @@
+{
+  "name": "impostor-game",
+  "version": "1.0.0",
+  "description": "Gra Impostor online dla 5 graczy",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.13.0",
+    "uuid": "^9.0.0"
+  }
+}
